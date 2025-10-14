@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Detalles del Paciente</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-person text-primary"></i>
+            Detalles del Paciente
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <a th:href="@{/editar/{id}(id=${paciente.idPaciente})}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i>
+                    Editar
+                </a>
+                <a th:href="@{/historias-clinicas/paciente/{id}(id=${paciente.idPaciente})}" class="btn btn-info">
+                    <i class="bi bi-file-medical"></i>
+                    Historial
+                </a>
+            </div>
+            <a th:href="@{/}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Patient Details -->
+    <div class="row">
+        <!-- Personal Information -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-person-badge"></i>
+                        Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">DNI:</div>
+                        <div class="col-sm-8" th:text="${paciente.dni}"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Nombres:</div>
+                        <div class="col-sm-8" th:text="${paciente.nombres}"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Apellidos:</div>
+                        <div class="col-sm-8" th:text="${paciente.apellidos}"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Fecha Nacimiento:</div>
+                        <div class="col-sm-8" th:text="${#temporals.format(paciente.fechaNacimiento, 'dd/MM/yyyy')}"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Sexo:</div>
+                        <div class="col-sm-8">
+                            <span th:if="${paciente.sexo == 'M'}">Masculino</span>
+                            <span th:if="${paciente.sexo == 'F'}">Femenino</span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Estado:</div>
+                        <div class="col-sm-8">
+                            <span th:if="${paciente.estado}" class="badge bg-success">Activo</span>
+                            <span th:unless="${paciente.estado}" class="badge bg-danger">Inactivo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-telephone"></i>
+                        Información de Contacto
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Teléfono:</div>
+                        <div class="col-sm-8" th:text="${paciente.telefono} ?: 'No registrado'"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 fw-bold">Correo:</div>
+                        <div class="col-sm-8" th:text="${paciente.correo} ?: 'No registrado'"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 fw-bold">Dirección:</div>
+                        <div class="col-sm-8" th:text="${paciente.direccion} ?: 'No registrada'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

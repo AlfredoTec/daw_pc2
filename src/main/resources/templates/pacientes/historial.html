@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.w3.org/1999/xhtml"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Historial Clínico</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-file-medical text-primary"></i>
+            Historial Clínico
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{/pacientes/ver/{id}(id=${paciente.idPaciente})}" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i>
+                Volver al Paciente
+            </a>
+            <a th:href="@{/pacientes}" class="btn btn-outline-secondary">
+                <i class="bi bi-list-ul"></i>
+                Lista de Pacientes
+            </a>
+        </div>
+    </div>
+
+    <!-- Patient Summary -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4 class="card-title mb-2" th:text="${paciente.nombres + ' ' + paciente.apellidos}"></h4>
+                    <div class="row">
+                        <div class="col-auto">
+                            <strong>DNI:</strong> <span th:text="${paciente.dni}" class="badge bg-secondary"></span>
+                        </div>
+                        <div class="col-auto">
+                            <strong>Fecha Nac.:</strong> <span th:text="${#temporals.format(paciente.fechaNacimiento, 'dd/MM/yyyy')}"></span>
+                        </div>
+                        <div class="col-auto">
+                            <strong>Edad:</strong> <span id="edadPaciente"></span> años
+                        </div>
+                        <div class="col-auto">
+                            <strong>Sexo:</strong>
+                            <span th:if="${paciente.sexo == 'M'}">Masculino</span>
+                            <span th:if="${paciente.sexo == 'F'}">Femenino</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span th:if="${paciente.estado}" class="badge bg-success fs-6">Paciente Activo</span>
+                    <span th:unless="${paciente.estado}" class="badge bg-danger fs-6">Paciente Inactivo</span>
+                    <div class="mt-2">
+                        <small class="text-muted">Historial médico completo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical History Navigation -->
+    <ul class="nav nav-tabs mb-4" id="historialTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="historia-tab" data-bs-toggle="tab" data-bs-target="#historia" type="button" role="tab">
+                <i class="bi bi-clipboard-plus"></i> Historia Clínica
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="antecedentes-tab" data-bs-toggle="tab" data-bs-target="#antecedentes" type="button" role="tab">
+                <i class="bi bi-heart-pulse"></i> Antecedentes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="consultas-tab" data-bs-toggle="tab" data-bs-target="#consultas" type="button" role="tab">
+                <i class="bi bi-calendar-check"></i> Consultas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="documentos-tab" data-bs-toggle="tab" data-bs-target="#documentos" type="button" role="tab">
+                <i class="bi bi-files"></i> Documentos
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="historialTabsContent">
+
+        <!-- Historia Clínica Tab -->
+        <div class="tab-pane fade show active" id="historia" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clipboard-data"></i>
+                                Información de Historia Clínica
+                            </h5>
+                            <button class="btn btn-sm btn-primary" onclick="mostrarModalHistoria()">
+                                <i class="bi bi-pencil"></i>
+                                Editar Historia
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="historiaContent">
+                                <div class="text-center py-5">
+                                    <i class="bi bi-file-medical display-1 text-muted"></i>
+                                    <h5 class="mt-3 text-muted">No hay historia clínica registrada</h5>
+                                    <p class="text-muted">Complete la información de historia clínica del paciente</p>
+                                    <button class="btn btn-primary" onclick="mostrarModalHistoria()">
+                                        <i class="bi bi-plus-circle"></i>
+                                        Crear Historia Clínica
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Resumen Médico
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted">Total Antecedentes</small>
+                                <h4 id="totalAntecedentes" class="text-primary">0</h4>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Consultas Registradas</small>
+                                <h4 id="totalConsultas" class="text-success">0</h4>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Última Actualización</small>
+                                <h6 id="ultimaActualizacion" class="text-muted">No disponible</h6>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="bi bi-lightning"></i>
+                                Acciones Rápidas
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-success btn-sm" onclick="mostrarModalAntecedente()">
+                                    <i class="bi bi-plus"></i> Agregar Antecedente
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="nuevaConsulta()">
+                                    <i class="bi bi-calendar-plus"></i> Nueva Consulta
+                                </button>
+                                <button class="btn btn-outline-info btn-sm" onclick="generarReporte()">
+                                    <i class="bi bi-file-pdf"></i> Generar Reporte
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Antecedentes Tab -->
+        <div class="tab-pane fade" id="antecedentes" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-heart-pulse"></i>
+                        Antecedentes Médicos
+                    </h5>
+                    <button class="btn btn-sm btn-success" onclick="mostrarModalAntecedente()">
+                        <i class="bi bi-plus"></i>
+                        Agregar Antecedente
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="tablaAntecedentes">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Fecha Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody id="antecedentesContent">
+                            <!-- Los antecedentes se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="antecedentesVacio" class="text-center py-5">
+                        <i class="bi bi-clipboard-data display-1 text-muted"></i>
+                        <h5 class="mt-3 text-muted">No hay antecedentes médicos registrados</h5>
+                        <p class="text-muted">Agregue los antecedentes médicos del paciente</p>
+                        <button class="btn btn-success" onclick="mostrarModalAntecedente()">
+                            <i class="bi bi-plus-circle"></i>
+                            Agregar Primer Antecedente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Consultas Tab -->
+        <div class="tab-pane fade" id="consultas" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-calendar-check"></i>
+                        Historial de Consultas
+                    </h5>
+                    <button class="btn btn-sm btn-primary" onclick="nuevaConsulta()">
+                        <i class="bi bi-plus"></i>
+                        Nueva Consulta
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="tablaConsultas">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Médico</th>
+                                <th>Motivo</th>
+                                <th>Diagnóstico</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody id="consultasContent">
+                            <!-- Las consultas se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="consultasVacio" class="text-center py-5">
+                        <i class="bi bi-calendar-x display-1 text-muted"></i>
+                        <h5 class="mt-3 text-muted">No hay consultas registradas</h5>
+                        <p class="text-muted">Registre la primera consulta médica del paciente</p>
+                        <button class="btn btn-primary" onclick="nuevaConsulta()">
+                            <i class="bi bi-plus-circle"></i>
+                            Registrar Primera Consulta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentos Tab -->
+        <div class="tab-pane fade" id="documentos" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-files"></i>
+                        Documentos Médicos
+                    </h5>
+                    <button class="btn btn-sm btn-info">
+                        <i class="bi bi-upload"></i>
+                        Subir Documento
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="documentosContent">
+                        <div class="col-12 text-center py-5">
+                            <i class="bi bi-folder display-1 text-muted"></i>
+                            <h5 class="mt-3 text-muted">No hay documentos adjuntos</h5>
+                            <p class="text-muted">Puede subir análisis, radiografías, recetas, etc.</p>
+                            <button class="btn btn-info">
+                                <i class="bi bi-cloud-upload"></i>
+                                Subir Primer Documento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Historia Clínica -->
+<div class="modal fade" id="modalHistoria" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Historia Clínica</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formHistoria">
+                    <input type="hidden" id="historiaId">
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Observaciones y Notas</label>
+                        <textarea class="form-control" id="observaciones" rows="6"
+                                  placeholder="Ingrese observaciones relevantes sobre el estado de salud del paciente, hábitos, condiciones crónicas, etc."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="fechaApertura" class="form-label">Fecha de Apertura</label>
+                            <input type="date" class="form-control" id="fechaApertura">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estado</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="historiaActiva" checked>
+                                <label class="form-check-label" for="historiaActiva">
+                                    Historia Clínica Activa
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarHistoria()">Guardar Historia</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Antecedentes -->
+<div class="modal fade" id="modalAntecedente" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Antecedente Médico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAntecedente">
+                    <input type="hidden" id="antecedenteId">
+                    <div class="mb-3">
+                        <label for="tipoAntecedente" class="form-label">Tipo de Antecedente</label>
+                        <select class="form-select" id="tipoAntecedente" required>
+                            <option value="">Seleccione un tipo...</option>
+                            <option value="alergias">Alergias</option>
+                            <option value="enfermedades_previas">Enfermedades Previas</option>
+                            <option value="cirugias">Cirugías</option>
+                            <option value="enfermedades_familiares">Enfermedades Familiares</option>
+                            <option value="medicamentos_cronicos">Medicamentos Crónicos</option>
+                            <option value="habitos">Hábitos</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcionAntecedente" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcionAntecedente" rows="4"
+                                  placeholder="Describa el antecedente médico en detalle..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fechaAntecedente" class="form-label">Fecha del Evento (si aplica)</label>
+                        <input type="date" class="form-control" id="fechaAntecedente">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="guardarAntecedente()">Guardar Antecedente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div layout:fragment="scripts">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const pacienteId = /*[[${paciente.idPaciente}]]*/;
+        let historiaClinica = null;
+        let antecedentes = [];
+        let consultas = [];
+
+        $(document).ready(function() {
+            calcularEdad();
+            cargarHistorialCompleto();
+
+            // Inicializar DataTables
+            $('#tablaAntecedentes').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                pageLength: 10,
+                responsive: true
+            });
+
+            $('#tablaConsultas').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                pageLength: 10,
+                responsive: true
+            });
+        });
+
+        function calcularEdad() {
+            const fechaNacimiento = new Date(/*[[${paciente.fechaNacimiento}]]*/);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+            const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+                edad--;
+            }
+
+            document.getElementById('edadPaciente').textContent = edad;
+        }
+
+        function cargarHistorialCompleto() {
+            cargarHistoriaClinica();
+            cargarAntecedentes();
+            cargarConsultas();
+        }
+
+        function cargarHistoriaClinica() {
+            fetch(`/api/historias-clinicas/paciente/${pacienteId}`)
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('Historia clínica no encontrada');
+                })
+                .then(data => {
+                    historiaClinica = data;
+                    mostrarHistoriaClinica(data);
+                })
+                .catch(error => {
+                    console.log('No se encontró historia clínica:', error);
+                    mostrarHistoriaClinica(null);
+                });
+        }
+
+        function mostrarHistoriaClinica(historia) {
+            const contenido = document.getElementById('historiaContent');
+
+            if (historia) {
+                contenido.innerHTML = `
+                    <div class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Fecha de Apertura:</strong><br>
+                                <span class="text-primary">${new Date(historia.fechaApertura).toLocaleDateString('es-ES')}</span>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <span class="badge bg-success">Historia Activa</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <strong>Observaciones:</strong>
+                        <div class="mt-2 p-3 bg-light rounded">
+                            ${historia.observaciones || '<em class="text-muted">No hay observaciones registradas</em>'}
+                        </div>
+                    </div>
+                    ${historia.antecedentes && historia.antecedentes.length > 0 ? `
+                    <div>
+                        <strong>Antecedentes Relacionados:</strong>
+                        <div class="mt-2">
+                            ${historia.antecedentes.map(ant => `
+                                <span class="badge bg-info me-1 mb-1">${ant.tipo}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('ultimaActualizacion').textContent =
+                    new Date().toLocaleDateString('es-ES');
+            } else {
+                contenido.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-medical display-1 text-muted"></i>
+                        <h5 class="mt-3 text-muted">No hay historia clínica registrada</h5>
+                        <p class="text-muted">Complete la información de historia clínica del paciente</p>
+                        <button class="btn btn-primary" onclick="mostrarModalHistoria()">
+                            <i class="bi bi-plus-circle"></i>
+                            Crear Historia Clínica
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function cargarAntecedentes() {
+            // Simulación de carga de antecedentes - en producción esto vendría de una API
+            setTimeout(() => {
+                antecedentes = [
+                    {
+                        id: 1,
+                        tipo: 'alergias',
+                        descripcion: 'Alergia a la penicilina y antibióticos similares',
+                        fechaRegistro: '2024-01-15'
+                    },
+                    {
+                        id: 2,
+                        tipo: 'enfermedades_previas',
+                        descripcion: 'Hipertensión arterial controlada con medicación',
+                        fechaRegistro: '2024-01-15'
+                    }
+                ];
+
+                mostrarAntecedentes(antecedentes);
+            }, 1000);
+        }
+
+        function mostrarAntecedentes(antecedentesLista) {
+            const tbody = document.getElementById('antecedentesContent');
+            const vacio = document.getElementById('antecedentesVacio');
+
+            if (antecedentesLista.length > 0) {
+                vacio.style.display = 'none';
+                tbody.innerHTML = antecedentesLista.map(ant => `
+                    <tr>
+                        <td>
+                            <span class="badge ${obtenerClaseBadgeTipo(ant.tipo)}">${formatearTipo(ant.tipo)}</span>
+                        </td>
+                        <td>${ant.descripcion}</td>
+                        <td>${new Date(ant.fechaRegistro).toLocaleDateString('es-ES')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" onclick="editarAntecedente(${ant.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarAntecedente(${ant.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('totalAntecedentes').textContent = antecedentesLista.length;
+            } else {
+                vacio.style.display = 'block';
+                tbody.innerHTML = '';
+                document.getElementById('totalAntecedentes').textContent = '0';
+            }
+        }
+
+        function cargarConsultas() {
+            // Simulación de carga de consultas
+            setTimeout(() => {
+                consultas = [
+                    {
+                        id: 1,
+                        fecha: '2024-03-15',
+                        medico: 'Dr. Juan Pérez',
+                        motivo: 'Control rutinario',
+                        diagnostico: 'Paciente estable, presión arterial dentro de parámetros normales',
+                        estado: 'completada'
+                    }
+                ];
+
+                mostrarConsultas(consultas);
+            }, 1000);
+        }
+
+        function mostrarConsultas(consultasLista) {
+            const tbody = document.getElementById('consultasContent');
+            const vacio = document.getElementById('consultasVacio');
+
+            if (consultasLista.length > 0) {
+                vacio.style.display = 'none';
+                tbody.innerHTML = consultasLista.map(cons => `
+                    <tr>
+                        <td>${new Date(cons.fecha).toLocaleDateString('es-ES')}</td>
+                        <td>${cons.medico}</td>
+                        <td>${cons.motivo}</td>
+                        <td>${cons.diagnostico}</td>
+                        <td>
+                            <span class="badge bg-success">${cons.estado}</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-printer"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('totalConsultas').textContent = consultasLista.length;
+            } else {
+                vacio.style.display = 'block';
+                tbody.innerHTML = '';
+                document.getElementById('totalConsultas').textContent = '0';
+            }
+        }
+
+        function obtenerClaseBadgeTipo(tipo) {
+            const clases = {
+                'alergias': 'bg-danger',
+                'enfermedades_previas': 'bg-warning text-dark',
+                'cirugias': 'bg-info',
+                'enfermedades_familiares': 'bg-secondary',
+                'medicamentos_cronicos': 'bg-primary',
+                'habitos': 'bg-success',
+                'otros': 'bg-dark'
+            };
+            return clases[tipo] || 'bg-dark';
+        }
+
+        function formatearTipo(tipo) {
+            const formatos = {
+                'alergias': 'Alergias',
+                'enfermedades_previas': 'Enfermedades Previas',
+                'cirugias': 'Cirugías',
+                'enfermedades_familiares': 'Familiares',
+                'medicamentos_cronicos': 'Medicamentos',
+                'habitos': 'Hábitos',
+                'otros': 'Otros'
+            };
+            return formatos[tipo] || tipo;
+        }
+
+        function mostrarModalHistoria() {
+            const modal = new bootstrap.Modal(document.getElementById('modalHistoria'));
+
+            if (historiaClinica) {
+                document.getElementById('observaciones').value = historiaClinica.observaciones || '';
+                document.getElementById('fechaApertura').value = historiaClinica.fechaApertura;
+                document.getElementById('historiaId').value = historiaClinica.idHistoria;
+            } else {
+                document.getElementById('observaciones').value = '';
+                document.getElementById('fechaApertura').value = new Date().toISOString().split('T')[0];
+                document.getElementById('historiaId').value = '';
+            }
+
+            modal.show();
+        }
+
+        function mostrarModalAntecedente() {
+            const modal = new bootstrap.Modal(document.getElementById('modalAntecedente'));
+            document.getElementById('formAntecedente').reset();
+            document.getElementById('antecedenteId').value = '';
+            modal.show();
+        }
+
+        function guardarHistoria() {
+            const historiaData = {
+                observaciones: document.getElementById('observaciones').value,
+                fechaApertura: document.getElementById('fechaApertura').value,
+                idPaciente: pacienteId
+            };
+
+            const url = historiaClinica ?
+                `/api/historias-clinicas/${historiaClinica.idHistoria}` :
+                '/api/historias-clinicas';
+
+            const method = historiaClinica ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(historiaData)
+            })
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('Error al guardar historia clínica');
+                })
+                .then(data => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalHistoria')).hide();
+                    cargarHistoriaClinica();
+                    mostrarAlerta('Historia clínica guardada correctamente', 'success');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarAlerta('Error al guardar la historia clínica', 'danger');
+                });
+        }
+
+        function guardarAntecedente() {
+            const antecedenteData = {
+                tipo: document.getElementById('tipoAntecedente').value,
+                descripcion: document.getElementById('descripcionAntecedente').value,
+                fechaEvento: document.getElementById('fechaAntecedente').value || null
+            };
+
+            // Aquí iría la llamada a la API para guardar el antecedente
+            console.log('Guardando antecedente:', antecedenteData);
+
+            bootstrap.Modal.getInstance(document.getElementById('modalAntecedente')).hide();
+            mostrarAlerta('Antecedente médico guardado correctamente', 'success');
+
+            // Recargar antecedentes
+            setTimeout(() => {
+                cargarAntecedentes();
+            }, 500);
+        }
+
+        function nuevaConsulta() {
+            mostrarAlerta('Funcionalidad de nueva consulta en desarrollo', 'info');
+        }
+
+        function generarReporte() {
+            mostrarAlerta('Generando reporte médico...', 'info');
+            // Aquí iría la lógica para generar el reporte PDF
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            const alerta = document.createElement('div');
+            alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+            alerta.innerHTML = `
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.querySelector('main').insertBefore(alerta, document.querySelector('main').firstChild);
+
+            setTimeout(() => {
+                alerta.remove();
+            }, 5000);
+        }
+
+        function editarAntecedente(id) {
+            const antecedente = antecedentes.find(a => a.id === id);
+            if (antecedente) {
+                document.getElementById('tipoAntecedente').value = antecedente.tipo;
+                document.getElementById('descripcionAntecedente').value = antecedente.descripcion;
+                document.getElementById('antecedenteId').value = antecedente.id;
+
+                const modal = new bootstrap.Modal(document.getElementById('modalAntecedente'));
+                modal.show();
+            }
+        }
+
+        function eliminarAntecedente(id) {
+            if (confirm('¿Está seguro de que desea eliminar este antecedente médico?')) {
+                // Aquí iría la llamada a la API para eliminar
+                antecedentes = antecedentes.filter(a => a.id !== id);
+                mostrarAntecedentes(antecedentes);
+                mostrarAlerta('Antecedente médico eliminado correctamente', 'success');
+            }
+        }
+        /*]]>*/
+    </script>
+</div>
+
+</body>
+</html>

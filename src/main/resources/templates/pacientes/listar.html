@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.w3.org/1999/xhtml"
+      layout:decorate="~{layout/base}">
+<head>
+    <title>Pacientes</title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-people text-primary"></i>
+            <span th:text="${titulo}">Gestión de Pacientes</span>
+        </h2>
+        <a th:href="@{/nuevo}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Nuevo Paciente
+        </a>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Total</h6>
+                            <h4 th:text="${#lists.size(pacientes)}">0</h4>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people display-6"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Activos</h6>
+                            <h4 th:text="${#lists.size(pacientes.?[estado == true])}">0</h4>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-check display-6"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title">Inactivos</h6>
+                            <h4 th:text="${#lists.size(pacientes.?[estado == false])}">0</h4>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-dash display-6"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pacientes Activos -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-person-check"></i>
+                Pacientes Activos
+                <span class="badge bg-light text-success ms-2"
+                      th:text="${#lists.size(pacientes.?[estado == true])}">0</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-success">
+                    <tr>
+                        <th>DNI</th>
+                        <th>Nombre Completo</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="paciente : ${pacientes.?[estado == true]}">
+                        <td th:text="${paciente.dni}"></td>
+                        <td>
+                            <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}"></strong>
+                        </td>
+                        <td th:text="${paciente.telefono} ?: 'N/A'"></td>
+                        <td th:text="${paciente.correo} ?: 'N/A'"></td>
+                        <td>
+                            <span class="badge bg-success">Activo</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/ver/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-outline-primary"
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{/editar/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-outline-warning"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:href="@{/desactivar/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-outline-danger"
+                                   title="Desactivar"
+                                   onclick="return confirm('¿Está seguro de desactivar este paciente?')">
+                                    <i class="bi bi-person-dash"></i>
+                                </a>
+                                <a th:href="@{/historias-clinicas/paciente/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="Historia Clínica">
+                                    <i class="bi bi-file-medical"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pacientes.?[estado == true])}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-person-check display-4 text-muted"></i>
+                            <h6 class="mt-3">No hay pacientes activos</h6>
+                            <p class="mb-0">Todos los pacientes están inactivos o no hay pacientes registrados</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pacientes Inactivos -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-person-dash"></i>
+                Pacientes Inactivos
+                <span class="badge bg-light text-dark ms-2"
+                      th:text="${#lists.size(pacientes.?[estado == false])}">0</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-secondary">
+                    <tr>
+                        <th>DNI</th>
+                        <th>Nombre Completo</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="paciente : ${pacientes.?[estado == false]}">
+                        <td th:text="${paciente.dni}"></td>
+                        <td>
+                            <strong th:text="${paciente.nombres + ' ' + paciente.apellidos}"></strong>
+                        </td>
+                        <td th:text="${paciente.telefono} ?: 'N/A'"></td>
+                        <td th:text="${paciente.correo} ?: 'N/A'"></td>
+                        <td>
+                            <span class="badge bg-danger">Inactivo</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/ver/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-outline-primary"
+                                   title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{/editar/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-outline-warning"
+                                   title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:href="@{/activar/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-outline-success"
+                                   title="Activar"
+                                   onclick="return confirm('¿Está seguro de activar este paciente?')">
+                                    <i class="bi bi-person-check"></i>
+                                </a>
+                                <a th:href="@{/historias-clinicas/paciente/{id}(id=${paciente.idPaciente})}"
+                                   class="btn btn-sm btn-outline-info"
+                                   title="Historia Clínica">
+                                    <i class="bi bi-file-medical"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pacientes.?[estado == false])}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-person-dash display-4 text-muted"></i>
+                            <h6 class="mt-3">No hay pacientes inactivos</h6>
+                            <p class="mb-0">Todos los pacientes están activos</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

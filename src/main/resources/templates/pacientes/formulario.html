@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.w3.org/1999/xhtml"
+      layout:decorate="~{layout/base}" lang="">
+<head>
+    <title th:text="${titulo}"></title>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-person-plus text-primary"></i>
+            <span th:text="${titulo}"></span>
+        </h2>
+        <a th:href="@{/}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Volver
+        </a>
+    </div>
+
+    <!-- Alertas -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Formulario -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-person-badge"></i>
+                Datos del Paciente
+            </h5>
+        </div>
+        <div class="card-body">
+            <form th:action="${paciente.idPaciente != null} ?
+                             @{/actualizar/{id}(id=${paciente.idPaciente})} :
+                             @{/guardar}"
+                  method="post">
+
+                <div class="row g-3">
+                    <!-- DNI -->
+                    <div class="col-md-6">
+                        <label class="form-label">DNI</label>
+                        <input type="text" class="form-control" name="dni"
+                               th:value="${paciente.dni}"
+                               placeholder="Ingrese el DNI" required
+                               maxlength="8" pattern="[0-9]{8}">
+                        <div class="form-text">8 dígitos numéricos</div>
+                    </div>
+
+                    <!-- Nombres -->
+                    <div class="col-md-6">
+                        <label class="form-label">Nombres</label>
+                        <input type="text" class="form-control" name="nombres"
+                               th:value="${paciente.nombres}"
+                               placeholder="Ingrese los nombres" required
+                               maxlength="100">
+                    </div>
+
+                    <!-- Apellidos -->
+                    <div class="col-md-6">
+                        <label class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" name="apellidos"
+                               th:value="${paciente.apellidos}"
+                               placeholder="Ingrese los apellidos" required
+                               maxlength="100">
+                    </div>
+
+                    <!-- Fecha Nacimiento -->
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" name="fechaNacimiento"
+                               th:value="${paciente.fechaNacimiento}" required>
+                    </div>
+
+                    <!-- Sexo -->
+                    <div class="col-md-6">
+                        <label class="form-label">Sexo</label>
+                        <select class="form-select" name="sexo" required>
+                            <option value="">Seleccione...</option>
+                            <option value="M" th:selected="${paciente.sexo == 'M'}">Masculino</option>
+                            <option value="F" th:selected="${paciente.sexo == 'F'}">Femenino</option>
+                        </select>
+                    </div>
+
+                    <!-- Teléfono -->
+                    <div class="col-md-6">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" name="telefono"
+                               th:value="${paciente.telefono}"
+                               placeholder="Ingrese el teléfono"
+                               maxlength="15">
+                    </div>
+
+                    <!-- Correo -->
+                    <div class="col-md-6">
+                        <label class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" name="correo"
+                               th:value="${paciente.correo}"
+                               placeholder="correo@ejemplo.com"
+                               maxlength="100">
+                    </div>
+
+                    <!-- Dirección -->
+                    <div class="col-12">
+                        <label class="form-label">Dirección</label>
+                        <textarea class="form-control" name="direccion"
+                                  rows="3" placeholder="Ingrese la dirección completa"
+                                  th:text="${paciente.direccion}"
+                                  maxlength="200"></textarea>
+                    </div>
+
+                    <!-- Estado - CORREGIDO -->
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox"
+                                   name="estado" value="true"
+                                   th:checked="${paciente.estado != null ? paciente.estado : true}">
+                            <label class="form-check-label">
+                                Paciente Activo
+                            </label>
+                        </div>
+                        <div class="form-text text-muted">
+                            Cuando está desactivado, el paciente se creará como inactivo
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a th:href="@{/}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                <span th:text="${paciente.idPaciente != null} ? 'Actualizar' : 'Guardar'"></span> Paciente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
